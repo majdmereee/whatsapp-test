@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>بوابة واتساب | Fly Chicken</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+    body { background: #0b0f17; color: #fff; padding: 24px; text-align: center; height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
+    .header { margin-bottom: 20px; }
+    .header h2 { font-size: 20px; color: #f26522; font-weight: 900; }
+    .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-top: 10px; background: #121927; border: 1px solid #233247; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+    .dot.online { background: #10b981; box-shadow: 0 0 8px #10b981; }
+    .qr-card { background: #121927; border: 1px solid #233247; border-radius: 16px; padding: 20px; min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    #qrImage { width: 220px; height: 220px; border-radius: 8px; display: none; background: #fff; padding: 6px; }
+    .connected-msg { display: none; color: #10b981; font-weight: 800; font-size: 16px; }
+    .footer-note { font-size: 11px; color: #8b9bb4; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>Fly Chicken | WhatsApp Gateway</h2>
+    <div class="status-badge">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">جاري تهيئة جلسة واتساب...</span>
+    </div>
+  </div>
+
+  <div class="qr-card">
+    <img id="qrImage" alt="QR Code">
+    <div class="connected-msg" id="connectedMsg">
+      ✔ واتساب متصل وجاهز لإرسال الأكواد تلقائياً!<br>
+      <span style="font-size:12px; color:#8b9bb4; font-weight:normal;">يعمل في الخلفية على المنفذ 3000</span>
+    </div>
+    <div id="loadingText" style="color:#8b9bb4; font-size:13px;">يرجى الانتظار لتوليد الرمز...</div>
+  </div>
+
+  <div class="footer-note">
+    * عند إغلاق النافذة، يستمر البرنامج بالعمل في خلفية ويندوز بجانب الساعة.<br>
+    * يعمل تلقائياً عند تشغيل الكمبيوتر دون أي حاجة للـ CMD.
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    const qrImg = document.getElementById('qrImage');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const connectedMsg = document.getElementById('connectedMsg');
+    const loadingText = document.getElementById('loadingText');
+
+    ipcRenderer.on('qr-code', (event, dataUrl) => {
+      qrImg.src = dataUrl;
+      qrImg.style.display = 'block';
+      loadingText.style.display = 'none';
+      connectedMsg.style.display = 'none';
+      statusDot.className = 'dot';
+      statusText.innerText = 'امسح الرمز من واتساب الهاتف';
+    });
+
+    ipcRenderer.on('status-update', (event, status) => {
+      if (status === 'connected') {
+        qrImg.style.display = 'none';
+        loadingText.style.display = 'none';
+        connectedMsg.style.display = 'block';
+        statusDot.className = 'dot online';
+        statusText.innerText = 'متصل بالخدمة (أونلاين)';
+      } else {
+        statusDot.className = 'dot';
+        statusText.innerText = 'انقطع الاتصال، جاري المحاولة...';
+      }
+    });
+  </script>
+</body>
+</html>
